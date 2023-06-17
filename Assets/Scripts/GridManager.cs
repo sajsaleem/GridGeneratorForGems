@@ -63,6 +63,7 @@ public class GridManager : MonoBehaviour
             {
                 GameObject newGameobject = (GameObject)Instantiate(objectTyps[gem].gameObject);
                 newGameobject.transform.position = new Vector2(i, j);
+                newGameobject.transform.SetParent(parentObject.transform);
                 grid[i, j] = randomGem;
 
                 break;
