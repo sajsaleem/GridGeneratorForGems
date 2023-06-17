@@ -13,19 +13,32 @@ public class GridManager : MonoBehaviour
     [SerializeField] private List<ObjectTyp> objectTyps = new List<ObjectTyp>();
 
     private GemType[,] grid;
+    private GameObject parentObject;
+    
     // Start is called before the first frame update
     void Start()
     {
-        GenerateLevel();
+        //GenerateLevel();
     }
 
     public void GenerateLevel()
     {
+        CreateNewParentObject();
+        
         do
         {
             GenerateGrid();
         }
         while (!HasValidMatch());
+    }
+
+    private void CreateNewParentObject()
+    {
+        if (parentObject != null)
+            Destroy(parentObject);
+
+        parentObject = new GameObject("Parent");
+        parentObject.transform.position = Vector3.zero;
     }
 
     private void GenerateGrid()
