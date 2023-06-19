@@ -9,27 +9,35 @@ public class GridManager : MonoBehaviour
 {
     [SerializeField] private int rows = default;
     [SerializeField] private int columns = default;
-
     [SerializeField] private List<ObjectTyp> objectTyps = new List<ObjectTyp>();
 
+    private float initialHorizontalPosition = -10;
+
+    private float horizontalPosition = default;
+    private float verticalPosition = 15;
+
     private GemType[,] grid;
+
     private GameObject parentObject;
-    
+
     // Start is called before the first frame update
     void Start()
     {
-        //GenerateLevel();
+        //hello;
     }
 
     public void GenerateLevel()
     {
         CreateNewParentObject();
-        
-        do
-        {
-            GenerateGrid();
-        }
-        while (!HasValidMatch());
+
+        grid = new GemType[rows, columns];
+
+        horizontalPosition = initialHorizontalPosition;
+        verticalPosition = 5;
+
+        GenerateGrid();
+        PopulateObjects();
+
     }
 
     private void CreateNewParentObject()
@@ -38,34 +46,51 @@ public class GridManager : MonoBehaviour
             Destroy(parentObject);
 
         parentObject = new GameObject("Parent");
+
         parentObject.transform.position = Vector3.zero;
     }
 
     private void GenerateGrid()
     {
-        grid = new GemType[rows, columns];
-
-        for(int i = 0; i < rows; i++)
+        for (int row = 0; row < rows; row++)
         {
-            for(int j = 0; j < columns; j++)
+            for (int col = 0; col < columns; col++)
             {
-                GemType randomGemType = GetRandomGemType();
-                InstantiateRandomGemType(i, j, randomGemType);
+                if (row == 0 && col == 0)
+                    grid[row, col] = GetRandomGemType();
+                else
+                {
+                    grid[row, col] = GetUniqueGemType(row, col);
+                }
             }
         }
     }
 
-    private void InstantiateRandomGemType(int i, int j , GemType randomGem)
+    private void PopulateObjects()
     {
-        for(int gem = 0; gem < objectTyps.Count; gem++)
+        for (int row = 0; row < rows; row++)
         {
-            if(objectTyps[gem].GemType == randomGem)
+            for (int col = 0; col < columns; col++)
+            {
+                InstantiateRandomGemType(row, col, grid[row, col]);
+            }
+
+            verticalPosition -= 2;
+            horizontalPosition = initialHorizontalPosition;
+
+        }
+    }
+
+    private void InstantiateRandomGemType(int i, int j, GemType randomGem)
+    {
+        for (int gem = 0; gem < objectTyps.Count; gem++)
+        {
+            if (objectTyps[gem].GemType == randomGem)
             {
                 GameObject newGameobject = (GameObject)Instantiate(objectTyps[gem].gameObject);
-                newGameobject.transform.position = new Vector2(i, j);
+                newGameobject.transform.position = new Vector2(horizontalPosition, verticalPosition);
                 newGameobject.transform.SetParent(parentObject.transform);
-                grid[i, j] = randomGem;
-
+                horizontalPosition += 3;
                 break;
             }
         }
@@ -77,32 +102,23 @@ public class GridManager : MonoBehaviour
 
     }
 
-    private bool HasValidMatch()
+
+    private GemType GetUniqueGemType(int row, int col)
     {
-        // for horizontal matches
-        for(int i = 0; i < rows; i++)
-        {
-            for(int j = 0; j < columns - 2; j++)
-            {
-                GemType gemType = grid[i, j];
+        GemType newGemType = GetRandomGemType();
 
-                if (gemType == grid[i, j + 1] && gemType == grid[i, j + 2])
-                    return true;
-            }
+        int nextRow = row + 1 < rows ? row + 1 : row;
+        int nextCol = col + 1 < columns ? col + 1 : col;
+        int previousRow = row - 1 > 0 ? row - 1 : row;
+        int previousCol = col - 1 > 0 ? col - 1 : col;
+
+
+        while (newGemType == grid[nextRow, col] || newGemType == grid[row, nextCol] || newGemType == grid[row, previousCol] || newGemType == grid[previousRow, col])
+        {
+            newGemType = GetRandomGemType();
+            Debug.Log("NewGemType: " + newGemType);
         }
 
-        // for vertical matches
-        for( int i = 0; i < columns; i++)
-        {
-            for(int j = 0; j < rows - 2; j++)
-            {
-                GemType gemType = grid[j, i];
-
-                if (gemType == grid[j + 1, i] && gemType == grid[j + 2, i])
-                    return true;
-            }
-        }
-
-        return false;
+        return newGemType;
     }
 }
